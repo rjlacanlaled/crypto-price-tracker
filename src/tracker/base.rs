@@ -1,16 +1,33 @@
-enum SourceVariant {
+use reqwest::Error;
+use serde::Serialize;
+
+use super::binance;
+
+#[derive(Debug, Serialize)]
+pub enum SourceVariant {
     Binance,
     Coingecko,
     Coinmarketcap,
 }
 
-struct CryptoPrice {
+#[derive(Debug, Serialize)]
+pub struct CryptoPrice {
     pub price: f64,
     pub currency: String,
     pub timestamp: u64,
-    pub source: SourceVariant,
+    pub source: String,
 }
 
-trait CryptoPriceTracker {
-    fn get_current_price(&self, currency: &str) -> Result<CryptoPrice, Box<dyn std::error::Error>>;
+pub trait CryptoPriceTracker {
+    const NAME: &'static str;
+}
+
+impl SourceVariant {
+    pub async fn get_price(&self, currencies: Vec<String>) -> Result<Vec<CryptoPrice>, Error> {
+        match self {
+            SourceVariant::Binance => binance::BinancePriceTracker::get_price(currencies).await,
+            SourceVariant::Coingecko => todo!(),
+            SourceVariant::Coinmarketcap => todo!(),
+        }
+    }
 }
